@@ -4,41 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Roller</title>
-
-    <!-- Open Graph Metadata -->
-    <meta property="og:title" content="Dice Roller - Roll the Dice!">
-    <meta property="og:description" content="Roll virtual dice with custom notations like 3d6+2 and see the results instantly.">
-    <meta property="og:url" content="https://shinra.posetmage.com/dice_roll/">
+    <!-- Server-side template variables -->
+    <script>
+        // Pre-calculate the roll result for metadata
+        function getInitialRoll() {
+            const path = window.location.pathname;
+            const notation = path.split("/").pop();
+            const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
+            const match = notation.match(diceRegex);
+            if (!match) return null;
+            
+            const numDice = parseInt(match[1]) || 1;
+            const diceSides = parseInt(match[2]);
+            const modifier = parseInt(match[3]) || 0;
+            
+            // Use a seeded random number for consistent previews
+            const seed = (notation + new Date().toDateString()).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const rolls = Array.from({length: numDice}, (_, i) => 
+                Math.floor((Math.sin(seed + i) * 10000) % diceSides) + 1
+            );
+            const sum = rolls.reduce((a, b) => a + b, 0) + modifier;
+            
+            return {
+                notation,
+                sum,
+                rolls,
+                modifier
+            };
+        }
+        
+        const initialRoll = getInitialRoll();
+        const resultText = initialRoll 
+            ? `${initialRoll.sum} = [${initialRoll.rolls.join(", ")}]${initialRoll.modifier ? (initialRoll.modifier > 0 ? "+" : "") + initialRoll.modifier : ""}`
+            : "Roll dice using format: /3d6+5 or /d20-2";
+    </script>
+    
+    <!-- Dynamic Open Graph Metadata -->
+    <meta property="og:title" content="🎲 Dice Roll: <%=resultText%>">
+    <meta property="og:description" content="Roll Result: <%=resultText%> - Roll your own at shinramage.github.io/dice_roll/">
+    <meta property="og:url" content="https://shinramage.github.io/dice_roll/">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://shinra.posetmage.com/dice_roll/default-dice-image.png">
-
+    <meta property="og:image" content="https://shinramage.github.io/dice_roll/dice-preview.png">
+    
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Dice Roller - Roll the Dice!">
-    <meta name="twitter:description" content="Roll virtual dice with custom notations like 3d6+2 and see the results instantly.">
-    <meta name="twitter:image" content="https://shinra.posetmage.com/dice_roll/default-dice-image.png">
-
-    <!-- CSS for improved visuals (optional) -->
+    <meta name="twitter:title" content="🎲 Dice Roll: <%=resultText%>">
+    <meta name="twitter:description" content="Roll Result: <%=resultText%> - Roll your own at shinramage.github.io/dice_roll/">
+    <meta name="twitter:image" content="https://shinramage.github.io/dice_roll/dice-preview.png">
+    
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        #header { font-size: 2em; color: #333; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px;
+            background-color: #f0f0f0;
+        }
+        #header { 
+            font-size: 2em; 
+            color: #333;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
-    <h1 id="header">Dice Roller</h1>
-
+    <h1 id="header">Loading...</h1>
     <script>
         // Function to parse dice notation (e.g., "3d6+5")
         function parseDiceNotation(notation) {
             const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
             const match = notation.match(diceRegex);
-
             if (!match) return null;
-
             const numDice = parseInt(match[1]) || 1;
             const diceSides = parseInt(match[2]);
             const modifier = parseInt(match[3]) || 0;
-
             return { numDice, diceSides, modifier };
         }
 
@@ -52,24 +94,17 @@
             return { sum, rolls, modifier };
         }
 
-        // Main logic to parse the URL, calculate, and display the result
+        // Main logic
         (function() {
             const path = window.location.pathname;
             const notation = path.split("/").pop();
-
             const diceData = parseDiceNotation(notation);
-
+            
             if (diceData) {
                 const { sum, rolls, modifier } = rollDice(diceData);
                 const resultText = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
-
-                // Update the title, header, and Open Graph title dynamically
-                document.title = resultText;
+                document.title = `🎲 ${resultText}`;
                 document.getElementById("header").textContent = resultText;
-
-                // Dynamically update Open Graph metadata
-                document.querySelector('meta[property="og:title"]').setAttribute("content", resultText);
-                document.querySelector('meta[property="og:description"]').setAttribute("content", `Result: ${resultText}`);
             } else {
                 const errorText = "Use format like: /3d6+5 or /d20-2";
                 document.title = errorText;
