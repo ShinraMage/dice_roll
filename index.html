@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.5;
+        }
+        .result {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+        .rolls {
+            color: #666;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="output"></div>
+
+    <script>
+        function rollDie(sides) {
+            return Math.floor(Math.random() * sides) + 1;
+        }
+
+        function parseDiceNotation(notation) {
+            // Remove any leading slash
+            notation = notation.replace(/^\//, '');
+            
+            // Match patterns like "3d6+5" or "d20-2"
+            const match = notation.match(/^(\d+)?d(\d+)([-+]\d+)?$/);
+            
+            if (!match) return null;
+            
+            const numDice = match[1] ? parseInt(match[1]) : 1;
+            const sides = parseInt(match[2]);
+            const modifier = match[3] ? parseInt(match[3]) : 0;
+            
+            return { numDice, sides, modifier };
+        }
+
+        function rollDice() {
+            const path = window.location.pathname;
+            const diceSpec = parseDiceNotation(path);
+            
+            if (!diceSpec) {
+                document.getElementById('output').innerHTML = `
+                    <h1>Invalid dice notation</h1>
+                    <p>Use format like: /3d6+5 or /d20-2</p>
+                `;
+                return;
+            }
+            
+            const rolls = [];
+            for (let i = 0; i < diceSpec.numDice; i++) {
+                rolls.push(rollDie(diceSpec.sides));
+            }
+            
+            const sum = rolls.reduce((a, b) => a + b, 0);
+            const total = sum + diceSpec.modifier;
+            
+            const modifierString = diceSpec.modifier > 0 ? `+${diceSpec.modifier}` :
+                                 diceSpec.modifier < 0 ? diceSpec.modifier : '';
+            
+            document.getElementById('output').innerHTML = `
+                <h1>Dice Roll Result</h1>
+                <div class="result">${total} = [${rolls.join(',')}]${modifierString}</div>
+                <div class="rolls">
+                    Roll details:<br>
+                    Dice: ${diceSpec.numDice}d${diceSpec.sides}<br>
+                    Modifier: ${modifierString || '0'}<br>
+                    Individual rolls: [${rolls.join(', ')}]<br>
+                    Sum of rolls: ${sum}<br>
+                    Final total: ${total}
+                </div>
+            `;
+        }
+
+        // Run on page load
+        rollDice();
+    </script>
+</body>
+</html>
