@@ -3,23 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dice Roller</title> <!-- Temporary title, will be updated -->
+    <title>Dice Roller</title>
+
+    <!-- Open Graph Meta Tags for Discord and Telegram previews -->
+    <meta property="og:title" content="Dice Roll Result" id="og-title">
+    <meta property="og:description" content="Click to see the dice roll result!" id="og-description">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Dice Roller">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-    <h1 id="header">Dice Roller</h1> <!-- Will be updated with the result -->
-
+    <h1 id="header">Dice Roller</h1>
     <script>
         // Function to parse dice notation (e.g., "3d6+5")
         function parseDiceNotation(notation) {
             const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
             const match = notation.match(diceRegex);
-
             if (!match) return null;
-
             const numDice = parseInt(match[1]) || 1; // Default to 1 if blank
             const diceSides = parseInt(match[2]);
             const modifier = parseInt(match[3]) || 0;
-
             return { numDice, diceSides, modifier };
         }
 
@@ -41,20 +65,28 @@
 
             // Parse the dice notation
             const diceData = parseDiceNotation(notation);
-
             if (diceData) {
                 // Roll the dice and get the result
                 const { sum, rolls, modifier } = rollDice(diceData);
                 const resultText = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
-
+                const notationText = `${diceData.numDice}d${diceData.diceSides}${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
+                
                 // Update the title and header with the result
-                document.title = resultText;
+                document.title = `Dice Roll: ${resultText}`;
                 document.getElementById("header").textContent = resultText;
+                
+                // Update Open Graph meta tags
+                document.getElementById("og-title").content = `Dice Roll: ${resultText}`;
+                document.getElementById("og-description").content = `Rolling ${notationText} resulted in ${resultText}`;
             } else {
                 // If notation is invalid, show an error message
                 const errorText = "Invalid dice notation.";
                 document.title = errorText;
                 document.getElementById("header").textContent = errorText;
+                
+                // Update Open Graph meta tags for error case
+                document.getElementById("og-title").content = "Invalid Dice Roll";
+                document.getElementById("og-description").content = "The dice notation provided was invalid.";
             }
         })();
     </script>
