@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dice Roller</title>
+    <title>Dice Roller</title> <!-- Temporary title, will be updated -->
 </head>
 <body>
-    <h1>Dice Roller</h1>
+    <h1 id="header">Dice Roller</h1> <!-- Temporary header, will be updated -->
     <p id="result"></p>
 
     <script>
@@ -34,7 +34,7 @@
             return { sum, rolls, modifier };
         }
 
-        // Main logic to parse the URL and display the result
+        // Main logic to parse the URL, calculate, and display the result
         (function() {
             // Get the path from the URL
             const path = window.location.pathname;
@@ -44,12 +44,21 @@
             const diceData = parseDiceNotation(notation);
 
             if (diceData) {
-                // Roll the dice and display the result
+                // Roll the dice and get the result
                 const { sum, rolls, modifier } = rollDice(diceData);
-                document.getElementById("result").textContent = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
+                const resultText = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
+
+                // Display the result
+                document.getElementById("result").textContent = resultText;
+
+                // Update the title and header with the result
+                document.title = resultText;
+                document.getElementById("header").textContent = resultText;
             } else {
-                // If the notation is invalid, show an error message
+                // If notation is invalid, show an error message
                 document.getElementById("result").textContent = "Invalid dice notation.";
+                document.title = "Invalid Dice Notation";
+                document.getElementById("header").textContent = "Invalid Dice Notation";
             }
         })();
     </script>
