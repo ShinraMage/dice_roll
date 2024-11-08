@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Roller</title>
+</head>
+<body>
+    <h1>Dice Roller</h1>
+    <p id="result"></p>
+
+    <script>
+        // Function to parse dice notation (e.g., "3d6+5")
+        function parseDiceNotation(notation) {
+            const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
+            const match = notation.match(diceRegex);
+
+            if (!match) return null;
+
+            const numDice = parseInt(match[1]) || 1; // Default to 1 if blank
+            const diceSides = parseInt(match[2]);
+            const modifier = parseInt(match[3]) || 0;
+
+            return { numDice, diceSides, modifier };
+        }
+
+        // Function to roll dice and calculate result
+        function rollDice({ numDice, diceSides, modifier }) {
+            let rolls = [];
+            for (let i = 0; i < numDice; i++) {
+                rolls.push(Math.floor(Math.random() * diceSides) + 1);
+            }
+            const sum = rolls.reduce((a, b) => a + b, 0) + modifier;
+            return { sum, rolls, modifier };
+        }
+
+        // Main logic to parse the URL and display the result
+        (function() {
+            // Get the path from the URL
+            const path = window.location.pathname;
+            const notation = path.split("/").pop(); // e.g., "3d6+5"
+
+            // Parse the dice notation
+            const diceData = parseDiceNotation(notation);
+
+            if (diceData) {
+                // Roll the dice and display the result
+                const { sum, rolls, modifier } = rollDice(diceData);
+                document.getElementById("result").textContent = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
+            } else {
+                // If the notation is invalid, show an error message
+                document.getElementById("result").textContent = "Invalid dice notation.";
+            }
+        })();
+    </script>
+</body>
+</html>
