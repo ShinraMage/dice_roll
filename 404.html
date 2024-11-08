@@ -6,8 +6,7 @@
     <title>Dice Roller</title> <!-- Temporary title, will be updated -->
 </head>
 <body>
-    <h1 id="header">Dice Roller</h1> <!-- Temporary header, will be updated -->
-    <p id="result"></p>
+    <h1 id="header">Dice Roller</h1> <!-- Will be updated with the result -->
 
     <script>
         // Function to parse dice notation (e.g., "3d6+5")
@@ -48,17 +47,14 @@
                 const { sum, rolls, modifier } = rollDice(diceData);
                 const resultText = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
 
-                // Display the result
-                document.getElementById("result").textContent = resultText;
-
                 // Update the title and header with the result
                 document.title = resultText;
                 document.getElementById("header").textContent = resultText;
             } else {
                 // If notation is invalid, show an error message
-                document.getElementById("result").textContent = "Invalid dice notation.";
-                document.title = "Invalid Dice Notation";
-                document.getElementById("header").textContent = "Invalid Dice Notation";
+                const errorText = "Invalid dice notation.";
+                document.title = errorText;
+                document.getElementById("header").textContent = errorText;
             }
         })();
     </script>
