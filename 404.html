@@ -71,7 +71,7 @@
                 document.querySelector('meta[property="og:title"]').setAttribute("content", resultText);
                 document.querySelector('meta[property="og:description"]').setAttribute("content", `Result: ${resultText}`);
             } else {
-                const errorText = "Invalid dice notation.";
+                const errorText = "Use format like: /3d6+5 or /d20-2";
                 document.title = errorText;
                 document.getElementById("header").textContent = errorText;
             }
