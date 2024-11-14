@@ -4,48 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Roller</title>
-
-    <!-- Dynamic Open Graph Metadata using JavaScript-generated text -->
-    <meta property="og:title" content="🎲 Dice Roll Result: Loading...">
-    <meta property="og:description" content="Loading roll result... Roll your own at shinramage.github.io/dice_roll/">
+    <!-- Server-side template variables -->
+    <script>
+        // Pre-calculate the roll result for metadata
+        function getInitialRoll() {
+            const path = window.location.pathname;
+            const notation = path.split("/").pop();
+            const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
+            const match = notation.match(diceRegex);
+            if (!match) return null;
+            
+            const numDice = parseInt(match[1]) || 1;
+            const diceSides = parseInt(match[2]);
+            const modifier = parseInt(match[3]) || 0;
+            
+            // Use a seeded random number for consistent previews
+            const seed = (notation + new Date().toDateString()).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+            const rolls = Array.from({length: numDice}, (_, i) => 
+                Math.floor((Math.sin(seed + i) * 10000) % diceSides) + 1
+            );
+            const sum = rolls.reduce((a, b) => a + b, 0) + modifier;
+            
+            return {
+                notation,
+                sum,
+                rolls,
+                modifier
+            };
+        }
+        
+        const initialRoll = getInitialRoll();
+        const resultText = initialRoll 
+            ? `${initialRoll.sum} = [${initialRoll.rolls.join(", ")}]${initialRoll.modifier ? (initialRoll.modifier > 0 ? "+" : "") + initialRoll.modifier : ""}`
+            : "Roll dice using format: /3d6+5 or /d20-2";
+    </script>
+    
+    <!-- Dynamic Open Graph Metadata -->
+    <meta property="og:title" content="🎲 Dice Roll: <%=resultText%>">
+    <meta property="og:description" content="Roll Result: <%=resultText%> - Roll your own at shinramage.github.io/dice_roll/">
     <meta property="og:url" content="https://shinramage.github.io/dice_roll/">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://shinramage.github.io/dice_roll/dice-preview.png">
     
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="🎲 Dice Roll Result: Loading...">
-    <meta name="twitter:description" content="Loading roll result... Roll your own at shinramage.github.io/dice_roll/">
+    <meta name="twitter:title" content="🎲 Dice Roll: <%=resultText%>">
+    <meta name="twitter:description" content="Roll Result: <%=resultText%> - Roll your own at shinramage.github.io/dice_roll/">
     <meta name="twitter:image" content="https://shinramage.github.io/dice_roll/dice-preview.png">
-
-    <script>
-        // Generate a unique result and display text based on the dice notation
-        function getRollResultText() {
-            const notation = window.location.search.replace('?roll=', '');
-            const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
-            const match = notation.match(diceRegex);
-            if (!match) return null;
-
-            const numDice = parseInt(match[1]) || 1;
-            const diceSides = parseInt(match[2]);
-            const modifier = parseInt(match[3]) || 0;
-
-            // Perform dice rolls
-            let rolls = [];
-            for (let i = 0; i < numDice; i++) {
-                rolls.push(Math.floor(Math.random() * diceSides) + 1);
-            }
-            const sum = rolls.reduce((a, b) => a + b, 0) + modifier;
-            return `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const resultText = getRollResultText();
-            document.title = resultText ? `🎲 ${resultText}` : "Roll Dice with /3d6+5 or /d20-2";
-            document.getElementById("header").textContent = resultText || "Use format like: /3d6+5 or /d20-2";
-        });
-    </script>
-
+    
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -67,11 +73,44 @@
 <body>
     <h1 id="header">Loading...</h1>
     <script>
-        // Update URL based on roll parameter for different previews
-        if (!window.location.search) {
-            const randomNotation = `?roll=${Math.floor(Math.random() * 5 + 1)}d${Math.floor(Math.random() * 20 + 4)}`;
-            history.replaceState(null, "", window.location.pathname + randomNotation);
+        // Function to parse dice notation (e.g., "3d6+5")
+        function parseDiceNotation(notation) {
+            const diceRegex = /(\d*)d(\d+)([+-]\d+)?/;
+            const match = notation.match(diceRegex);
+            if (!match) return null;
+            const numDice = parseInt(match[1]) || 1;
+            const diceSides = parseInt(match[2]);
+            const modifier = parseInt(match[3]) || 0;
+            return { numDice, diceSides, modifier };
         }
+
+        // Function to roll dice and calculate result
+        function rollDice({ numDice, diceSides, modifier }) {
+            let rolls = [];
+            for (let i = 0; i < numDice; i++) {
+                rolls.push(Math.floor(Math.random() * diceSides) + 1);
+            }
+            const sum = rolls.reduce((a, b) => a + b, 0) + modifier;
+            return { sum, rolls, modifier };
+        }
+
+        // Main logic
+        (function() {
+            const path = window.location.pathname;
+            const notation = path.split("/").pop();
+            const diceData = parseDiceNotation(notation);
+            
+            if (diceData) {
+                const { sum, rolls, modifier } = rollDice(diceData);
+                const resultText = `${sum} = [${rolls.join(", ")}]${modifier ? (modifier > 0 ? "+" : "") + modifier : ""}`;
+                document.title = `🎲 ${resultText}`;
+                document.getElementById("header").textContent = resultText;
+            } else {
+                const errorText = "Use format like: /3d6+5 or /d20-2";
+                document.title = errorText;
+                document.getElementById("header").textContent = errorText;
+            }
+        })();
     </script>
 </body>
 </html>
