@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script>
+        // Generate a new random number for the URL
+        function generateShareLink() {
+            const newNumber = Math.floor(Math.random() * 1000) + 1;
+            const baseUrl = window.location.origin + window.location.pathname;
+            return `${baseUrl}?n=${newNumber}`;
+        }
+
+        // Get current number from URL or generate new one
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentNumber = urlParams.get('n') || Math.floor(Math.random() * 1000) + 1;
+
+        // Update page content when it loads
+        window.onload = function() {
+            document.title = `Number: ${currentNumber}`;
+            document.querySelector('h1').textContent = `Number: ${currentNumber}`;
+            
+            // Create share button
+            const shareBtn = document.querySelector('#shareBtn');
+            shareBtn.onclick = function() {
+                const newLink = generateShareLink();
+                navigator.clipboard.writeText(newLink);
+                alert('New share link copied to clipboard!');
+            };
+        }
+    </script>
+
+    <!-- Dynamic meta tags -->
+    <title>Number: 0</title>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Number: ${currentNumber}">
+</head>
+<body>
+    <h1>Number: 0</h1>
+    <button id="shareBtn">Generate New Share Link</button>
+</body>
+</html>
